@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+	<typeAliases>
+		<typeAlias type="com.spring.board.vo.BoardVO" alias="board" />
+		<!-- 댓글 작성 시 ReplyVO class 생성 후 주석 해제 -->
+		<typeAlias type="com.spring.reply.vo.ReplyVO" alias="reply" />
+	</typeAliases>
+</configuration>
+
+

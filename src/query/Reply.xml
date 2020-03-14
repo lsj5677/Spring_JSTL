@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.spring.reply.dao.ReplyDao">
+
+	<!-- 조회 -->
+	<select id="replyList" parameterType="reply" resultType="reply">
+		SELECT
+			 R_NUM,
+			 B_NUM,
+			 R_NAME,
+			 R_CONTENT,
+			 R_PW,
+			 R_DELETEYN,
+			 R_INSERTDATE
+		FROM SPRING_REPLY
+		WHERE B_NUM = #{b_num}
+		ORDER BY R_NUM DESC
+	</select>
+	
+	<!-- chaebun -->
+	<select id="replyChaebun" resultMap="replyVO">
+		SELECT NVL(MAX(SUBSTR(R_NUM, 2)), 0) + 1 R_NUM FROM SPRING_REPLY
+	</select>
+	
+	<!-- insert -->
+	<insert id="replyInsert" parameterType="reply">
+		INSERT INTO SPRING_REPLY
+			(R_NUM,
+			 B_NUM,
+			 R_NAME,
+			 R_CONTENT,
+			 R_PW,
+			 R_DELETEYN,
+			 R_INSERTDATE)
+		VALUES
+			(#{r_num},
+			 #{b_num},
+			 #{r_name},
+			 #{r_content},
+			 #{r_pw},
+			 'Y',
+			 SYSDATE
+			)
+	</insert>
+	<update id="replyUpdate" parameterType="reply">
+		UPDATE SPRING_REPLY
+			SET 
+			 R_CONTENT = #{r_content},
+			 R_INSERTDATE = SYSDATE
+		WHERE R_NUM = #{r_num}
+	</update>
+	<delete id="replyDelete" parameterType="reply">
+		DELETE
+		FROM SPRING_REPLY
+		WHERE R_NUM = #{r_num}
+	</delete>
+</mapper>

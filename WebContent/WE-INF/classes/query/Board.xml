@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.spring.board.dao.BoardDao">
+	<sql id="boardCommon">
+		SELECT
+			 B_NUM,
+			 B_NAME,
+			 B_TITLE,
+			 B_INSERTDATE
+		FROM SPRING_BOARD
+		<trim prefix="WHERE" prefixOverrides="AND">
+			<if test="search =='b_title'">
+				<![CDATA[B_TITLE LIKE '%'||#{keyword}||'%']]>
+			</if>
+			<if test="search =='b_content'">
+				<![CDATA[AND B_CONTENT LIKE '%'||#{keyword}||'%']]>
+			</if>
+			<if test="search =='b_name'">
+				<![CDATA[AND B_NAME LIKE '%'||#{keyword}||'%']]>
+			</if>
+		</trim>
+	</sql>
+	
+	<select id="boardList" parameterType="board" resultType="board">
+		SELECT
+			 B_NUM  
+			,B_NAME        
+			,B_TITLE      
+			,B_INSERTDATE 
+			FROM
+		(SELECT list.*, ROWNUM AS RNUM
+				FROM(
+					<include refid="boardCommon"></include>
+                        <choose>
+                           <when test="order_by=='b_num'">
+                                 ORDER BY B_NUM
+                           </when>
+                           <when test="order_by=='b_insertdate'">
+                                 ORDER BY B_INSERTDATE
+                           </when>
+                        </choose>
+                       <choose>
+                           <when test="order_sc=='ASC'">
+                                 ASC
+                           </when>
+                           <when test="order_sc=='DESC'">
+                                 DESC
+                           </when>
+                        </choose>
+
+			)list
+	
+		)
+		<where>
+			<if test="start_row !=null and start_row !=''">
+				<if test="end_row !=null and end_row !=''">
+					RNUM BETWEEN #{start_row} AND #{end_row}
+				</if>
+			</if>
+		</where> 
+		<!-- WHERE B_DELETEYN = 'Y'
+		ORDER BY B_NUM DESC
+		 -->
+	</select>
+	
+	<!-- 전체조회 
+	<select id="boardList" parameterType="board" resultType="board">
+		SELECT
+			 B_NUM  
+			,B_NAME      
+			,B_PW        
+			,B_TITLE    
+			,B_CONTENT    
+			,B_FILE       
+			,B_DELETEYN  
+			,B_INSERTDATE 
+			,B_UPDATEDATE
+		FROM SPRING_BOARD
+		WHERE B_DELETEYN = 'Y'
+		ORDER BY B_NUM DESC
+	</select>
+	-->
+	<!-- paging-->
+	<select id="boardListCnt" parameterType="board" resultType="int">
+		<!-- boardListCnt -->
+		SELECT NVL(count(1),0)
+		FROM (
+			SELECT 
+				list.*, 
+				ROWNUM AS RNUM
+			FROM (
+				<include refid="boardCommon"></include>
+				ORDER BY B_NUM DESC
+			) list
+		)
+	</select>
+	<!-- chaebun -->
+	<select id="boardChaebun" resultMap="boardVO">
+		SELECT NVL(MAX(SUBSTR(B_NUM, 2)), 0) + 1 B_NUM FROM SPRING_BOARD
+	</select>
+	<!-- insert -->
+	<insert id="boardInsert" parameterType="board">
+		INSERT INTO SPRING_BOARD
+			(B_NUM  
+			,B_NAME      
+			,B_PW        
+			,B_TITLE    
+			,B_CONTENT    
+			,B_FILE       
+			,B_DELETEYN  
+			,B_INSERTDATE 
+			,B_UPDATEDATE)
+		VALUES
+			(#{b_num,jdbcType=VARCHAR},
+			 #{b_name,jdbcType=VARCHAR},
+			 #{b_pw,jdbcType=VARCHAR},
+			 #{b_title,jdbcType=VARCHAR},
+			 #{b_content,jdbcType=VARCHAR},
+			 #{b_file,jdbcType=VARCHAR},
+			 'Y',
+			 SYSDATE,
+			 SYSDATE)
+	</insert>
+	
+	<!-- 상세페이지를 위한 게시물 조회 -->
+	<select id="boardDetail" parameterType="board" resultType="board">
+		SELECT
+			 B_NUM  
+			,B_NAME      
+			,B_PW        
+			,B_TITLE    
+			,B_CONTENT    
+			,B_FILE    
+			,B_INSERTDATE
+		FROM SPRING_BOARD
+		WHERE B_NUM = #{b_num}
+	</select>
+	
+	<!-- 해당 번호의 비밀번호 확인 --> 
+	<select id="pwdConfirm" parameterType="board" resultType="int">
+		SELECT NVL((
+			SELECT 1 FROM SPRING_BOARD
+			WHERE B_NUM = #{b_num} AND B_PW = #{b_pw}
+			),0)AS RESULT
+		FROM DUAL
+	</select>
+	
+	<!-- update -->
+	<update id="boardUpdate" parameterType="board">
+		UPDATE SPRING_BOARD
+		SET B_TITLE = #{b_title},
+			B_NAME = #{b_name},
+			B_CONTENT = #{b_content},
+			B_UPDATEDATE = SYSDATE
+		<if test="b_file != ''">
+			,B_FILE = #{b_file,jdbcType=VARCHAR}
+		</if>
+		<if test="b_pw != null and b_pw != ''">
+			,B_PW = #{b_pw,jdbcType=VARCHAR}
+		</if>
+		WHERE B_NUM = #{b_num,jdbcType=VARCHAR} 
+		AND B_DELETEYN = 'Y'
+	</update>
+	
+	<delete id="boardDelete" parameterType="board">
+		DELETE 
+		FROM SPRING_BOARD
+		WHERE B_NUM = #{b_num}
+		AND B_DELETEYN = 'Y'
+	</delete>
+</mapper>
